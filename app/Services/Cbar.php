@@ -16,10 +16,9 @@ final class Cbar implements ExchangeRateProviderInterface
     public function getRates(): array
     {
         try {
-            $date = Carbon::now('Asia/Baku'); // ბაქოს დრო
+            $date = Carbon::now('Asia/Baku');
             $xml = null;
 
-            // სცადე დღეს და უკან 4 დღეს (სულ 5 ცდა)
             for ($i = 0; $i < 5; $i++) {
                 $url = sprintf('%s/%s.xml', self::BASE, $date->format('d.m.Y'));
                 $resp = Http::timeout(15)->get($url);
@@ -41,7 +40,6 @@ final class Cbar implements ExchangeRateProviderInterface
                 return [];
             }
 
-            // <ValCurs Date="DD.MM.YYYY" ...>
             $effDate = (string)($sx['Date'] ?? '');
             $dateIso = $effDate ? Carbon::createFromFormat('d.m.Y', $effDate, 'Asia/Baku')->toDateString()
                                 : Carbon::now('Asia/Baku')->toDateString();
@@ -53,7 +51,7 @@ final class Cbar implements ExchangeRateProviderInterface
                     if (!$code) continue;
 
                     $nominal = self::toFloat((string)$v->Nominal) ?: 1.0;
-                    $value   = self::toFloat((string)$v->Value);      // AZN amount for "nominal" units
+                    $value   = self::toFloat((string)$v->Value);    
                     $perOne  = $nominal > 0 ? ($value / $nominal) : 0.0;
 
                     $out[] = new ExchangeRateDTO('AZ', $code, $perOne, $dateIso);
